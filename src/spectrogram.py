@@ -11,10 +11,10 @@ class MelSpectrogram(object):
     self.n_fft = 2048
     self.hop_length = 512
     self.file_path = file_path
-    self.genres = ['metal', 'disco', 'classical', 'hip-hop', 'jazz', 'country',
+    self.genres = ['metal', 'disco', 'classical', 'hiphop', 'jazz', 'country',
       'pop', 'blues', 'reggae', 'rock']
   
-  def getdata(self, frac = 0.75):
+  def getdata(self):
     # Allocate memory for the array of songs
     song_data = []
     genre_data = []
@@ -35,4 +35,4 @@ class MelSpectrogram(object):
           # Append the result to the data structure
           song_data.append(melspec)
           genre_data.append(x)
-    return song_data, genre_data
+    return np.array(song_data), np.array(genre_data)

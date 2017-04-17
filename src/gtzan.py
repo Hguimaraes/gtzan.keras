@@ -32,7 +32,8 @@ def main(argv):
     raise ValueError('Argument Invalid: The options are MFCC or SPECT')
 
   songs, genres = song_rep.getdata()
-  print(songs)
+  print(songs.shape)
+  print(genres.shape)
 
 if __name__ == "__main__":
   main(sys.argv)
