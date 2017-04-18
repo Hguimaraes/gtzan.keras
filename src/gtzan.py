@@ -15,6 +15,7 @@ from keras.layers.convolutional import Conv1D
 from keras.layers.pooling import MaxPooling1D
 from keras.layers.pooling import GlobalMaxPooling1D
 from keras.layers.pooling import GlobalAveragePooling1D
+from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
 from mfcc import MFCC
@@ -25,8 +26,8 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 # Constants
 GTZAN_FOLDER = '../dataset/GTZAN/'
-batch_size = 32 
-epochs = 100
+batch_size = 64 
+epochs = 30
 
 """
 """
@@ -35,18 +36,20 @@ def cnn_gtzan_model(input_shape):
   
   # First Conv Layer
   model.add(Conv1D(256,
-    kernel_size = 8,
-    activation='relu',
+    kernel_size = 4,
+    activation='tanh',
     input_shape = input_shape))
-  model.add(MaxPooling1D(pool_size=8, strides=8))
+  model.add(BatchNormalization())
+  model.add(MaxPooling1D(pool_size=4, strides=4))
   
   # Second Conv Layer
-  model.add(Conv1D(512, 8, activation='relu'))
+  model.add(Conv1D(512, 4, activation='tanh'))
+  model.add(BatchNormalization())
   model.add(GlobalMaxPooling1D())
 
   # Regular MLP
-  model.add(Dense(1024, activation='relu'))
-  model.add(Dropout(0.25))
+  model.add(Dense(1024, activation='tanh'))
+  model.add(Dropout(0.5))
   model.add(Dense(10, activation='softmax'))
 
   return model
@@ -76,7 +79,7 @@ def main(argv):
   print(genres.shape)
   
   # Split the dataset into training and test
-  sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=0)
+  sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3)
   for train_index, test_index in sss.split(songs, genres):
     x_train, x_test = songs[train_index], songs[test_index]
     y_train, y_test = genres[train_index], genres[test_index]
