@@ -2,57 +2,25 @@ import os
 import sys
 import argparse
 import numpy as np
+from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedShuffleSplit
-from sklearn.preprocessing import OneHotEncoder
 
 import keras
-from keras.models import Sequential
-from keras.utils import plot_model
-from keras.layers import Dense
-from keras.layers import Dropout
-from keras.layers import Flatten
-from keras.layers.convolutional import Conv1D
-from keras.layers.pooling import MaxPooling1D
-from keras.layers.pooling import GlobalMaxPooling1D
-from keras.layers.pooling import GlobalAveragePooling1D
-from keras.layers.normalization import BatchNormalization
 from keras import backend as K
 
 from mfcc import MFCC
 from spectrogram import MelSpectrogram
+from models import cnn_gtzan_model
+from models import cnn_mfcc_gtzan_model
 
 # Disable TF warnings about speed up
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 # Constants
+EXEC_TIMES = 1
 GTZAN_FOLDER = '../dataset/GTZAN/'
-batch_size = 64 
+batch_size = 64
 epochs = 30
-
-"""
-"""
-def cnn_gtzan_model(input_shape):
-  model = Sequential()
-  
-  # First Conv Layer
-  model.add(Conv1D(256,
-    kernel_size = 4,
-    activation='tanh',
-    input_shape = input_shape))
-  model.add(BatchNormalization())
-  model.add(MaxPooling1D(pool_size=4, strides=4))
-  
-  # Second Conv Layer
-  model.add(Conv1D(512, 4, activation='tanh'))
-  model.add(BatchNormalization())
-  model.add(GlobalMaxPooling1D())
-
-  # Regular MLP
-  model.add(Dense(1024, activation='tanh'))
-  model.add(Dropout(0.5))
-  model.add(Dense(10, activation='softmax'))
-
-  return model
 
 """
 """
@@ -78,30 +46,48 @@ def main(argv):
   print(songs.shape)
   print(genres.shape)
   
-  # Split the dataset into training and test
-  sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3)
-  for train_index, test_index in sss.split(songs, genres):
-    x_train, x_test = songs[train_index], songs[test_index]
-    y_train, y_test = genres[train_index], genres[test_index]
+  # Train multiple times and get mean score
+  test_loss = []
+  test_acc = []
 
-  # Construct the model
-  cnn = cnn_gtzan_model(input_shape)
-  print("Size of the CNN: %s" % cnn.count_params())
-  print("Network summary:\n %s" % cnn.summary())
+  for x in range(EXEC_TIMES):
+    # Split the dataset into training and test
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3)
+    for train_index, test_index in sss.split(songs, genres):
+      x_train, x_test = songs[train_index], songs[test_index]
+      y_train, y_test = genres[train_index], genres[test_index]
 
-  cnn.compile(loss=keras.losses.categorical_crossentropy,
-    optimizer=keras.optimizers.Adadelta(),
-    metrics=['accuracy'])
+    # Construct the model
+    cnn = cnn_gtzan_model(input_shape)
+    print("Size of the CNN: %s" % cnn.count_params())
 
-  cnn.fit(x_train, y_train,
-    batch_size=batch_size,
-    epochs=epochs,
-    verbose=1,
-    validation_data=(x_test, y_test))
+    cnn.compile(loss=keras.losses.categorical_crossentropy,
+      optimizer=keras.optimizers.Adadelta(),
+      metrics=['accuracy'])
 
-  score = cnn.evaluate(x_test, y_test, verbose=0)
-  print('Test loss:', score[0])
-  print('Test accuracy:', score[1])
+    cnn.fit(x_train, y_train,
+      batch_size=batch_size,
+      epochs=epochs,
+      verbose=1,
+      validation_data=(x_test, y_test))
+
+    score = cnn.evaluate(x_test, y_test, verbose=0)
+    
+    # Save metrics to calculate the mean
+    test_loss.append(score[0])
+    test_acc.append(score[1])
+
+    # Print the confusion matrix of the model
+    pred_values = np.argmax(cnn.predict(x_test), axis = 1)
+    cm = confusion_matrix(np.argmax(y_test, axis = 1), pred_values)
+    print(cm)
+
+    # Print metrics
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
+
+  # Print the statistics
+  print("Test accuracy - mean: %s, std: %s" % (np.mean(test_acc), np.std(test_acc)))
 
 if __name__ == "__main__":
   main(sys.argv)
