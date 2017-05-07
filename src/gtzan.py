@@ -11,13 +11,12 @@ from keras import backend as K
 from mfcc import MFCC
 from spectrogram import MelSpectrogram
 from models import cnn_gtzan_model
-from models import cnn_mfcc_gtzan_model
 
 # Disable TF warnings about speed up
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 # Constants
-EXEC_TIMES = 1
+EXEC_TIMES = 15
 GTZAN_FOLDER = '../dataset/GTZAN/'
 batch_size = 64
 epochs = 30
@@ -43,8 +42,12 @@ def main(argv):
     raise ValueError('Argument Invalid: The options are MFCC or SPECT')
 
   songs, genres = song_rep.getdata()
+  songs = song_rep.normalize(songs)
   print(songs.shape)
   print(genres.shape)
+
+  # Free memory
+  del song_rep
   
   # Train multiple times and get mean score
   test_loss = []
@@ -61,8 +64,9 @@ def main(argv):
     cnn = cnn_gtzan_model(input_shape)
     print("Size of the CNN: %s" % cnn.count_params())
 
+    sgd = keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=1e-6, nesterov=True)
     cnn.compile(loss=keras.losses.categorical_crossentropy,
-      optimizer=keras.optimizers.Adadelta(),
+      optimizer=sgd,
       metrics=['accuracy'])
 
     cnn.fit(x_train, y_train,
