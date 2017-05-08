@@ -19,7 +19,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 EXEC_TIMES = 15
 GTZAN_FOLDER = '../dataset/GTZAN/'
 batch_size = 64
-epochs = 30
+epochs = 100
 
 """
 """
@@ -50,6 +50,7 @@ def main(argv):
   del song_rep
   
   # Train multiple times and get mean score
+  test_history = []
   test_loss = []
   test_acc = []
 
@@ -64,22 +65,36 @@ def main(argv):
     cnn = cnn_gtzan_model(input_shape)
     print("Size of the CNN: %s" % cnn.count_params())
 
+    # Optimizers
     sgd = keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=1e-6, nesterov=True)
+    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+
+    # Compiler for the model
     cnn.compile(loss=keras.losses.categorical_crossentropy,
       optimizer=sgd,
       metrics=['accuracy'])
 
-    cnn.fit(x_train, y_train,
+    # Early stop
+    earlystop = keras.callbacks.EarlyStopping(monitor='val_loss',
+      min_delta=0,
+      patience=2,
+      verbose=0,
+      mode='auto')
+
+    # Fit the model
+    history = cnn.fit(x_train, y_train,
       batch_size=batch_size,
       epochs=epochs,
       verbose=1,
-      validation_data=(x_test, y_test))
+      validation_data=(x_test, y_test),
+      callbacks = [earlystop])
 
     score = cnn.evaluate(x_test, y_test, verbose=0)
     
     # Save metrics to calculate the mean
     test_loss.append(score[0])
     test_acc.append(score[1])
+    test_history.append(history)
 
     # Print the confusion matrix of the model
     pred_values = np.argmax(cnn.predict(x_test), axis = 1)
@@ -91,6 +106,7 @@ def main(argv):
     print('Test accuracy:', score[1])
 
   # Print the statistics
+  print(list(test_acc))
   print("Test accuracy - mean: %s, std: %s" % (np.mean(test_acc), np.std(test_acc)))
 
 if __name__ == "__main__":
