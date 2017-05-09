@@ -11,12 +11,13 @@ from keras import backend as K
 from mfcc import MFCC
 from spectrogram import MelSpectrogram
 from models import cnn_gtzan_model
+from models import cnn_gtzan_model_mfcc
 
 # Disable TF warnings about speed up
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
 # Constants
-EXEC_TIMES = 15
+EXEC_TIMES = 10
 GTZAN_FOLDER = '../dataset/GTZAN/'
 batch_size = 64
 epochs = 100
@@ -42,7 +43,9 @@ def main(argv):
     raise ValueError('Argument Invalid: The options are MFCC or SPECT')
 
   songs, genres = song_rep.getdata()
-  songs = song_rep.normalize(songs)
+  if args.rep == 'SPECT':
+    songs = song_rep.normalize(songs)
+
   print(songs.shape)
   print(genres.shape)
 
@@ -62,7 +65,11 @@ def main(argv):
       y_train, y_test = genres[train_index], genres[test_index]
 
     # Construct the model
-    cnn = cnn_gtzan_model(input_shape)
+    if args.rep == 'SPECT':
+      cnn = cnn_gtzan_model(input_shape)
+    else:
+      cnn = cnn_gtzan_model_mfcc(input_shape)
+
     print("Size of the CNN: %s" % cnn.count_params())
 
     # Optimizers

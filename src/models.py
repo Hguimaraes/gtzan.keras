@@ -33,3 +33,32 @@ def cnn_gtzan_model(input_shape):
   model.add(Dense(10, activation='softmax'))
 
   return model
+
+"""
+"""
+def cnn_gtzan_model_mfcc(input_shape):
+  model = Sequential()
+  
+  # First Conv Layer
+  model.add(Conv1D(32, 4, input_shape = input_shape))
+  model.add(keras.layers.advanced_activations.LeakyReLU())
+  model.add(Conv1D(64, 4))
+  model.add(keras.layers.advanced_activations.LeakyReLU())
+  model.add(BatchNormalization())
+  model.add(MaxPooling1D(pool_size=3, strides=3))
+  
+  # Second Conv Layer
+  model.add(Conv1D(128, 4))
+  model.add(keras.layers.advanced_activations.LeakyReLU())
+  model.add(Conv1D(256, 4))
+  model.add(keras.layers.advanced_activations.LeakyReLU())
+  model.add(BatchNormalization())
+  model.add(GlobalMaxPooling1D())
+
+  # Regular MLP
+  model.add(Dense(512))
+  model.add(keras.layers.advanced_activations.LeakyReLU())
+  model.add(Dropout(0.25))
+  model.add(Dense(10, activation='softmax'))
+
+  return model
