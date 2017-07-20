@@ -1,56 +1,60 @@
 import os
 import sys
-import argparse
+import configparser
+
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import StratifiedShuffleSplit
-
 import keras
 from keras import backend as K
 
-from mfcc import MFCC
-from spectrogram import MelSpectrogram
-from models import cnn_gtzan_model
-from models import cnn_gtzan_model_mfcc
+from audiostruct import MFCC, MelSpectrogram
+from audiomodels import ModelZoo
+#from audioutils import MusicDataGenerator
 
 # Disable TF warnings about speed up
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
-# Constants
-EXEC_TIMES = 10
-GTZAN_FOLDER = '../dataset/GTZAN/'
-batch_size = 64
-epochs = 100
+def main():
+  # Parse config file
+  config = configparser.ConfigParser()
+  config.read('params.ini')
 
-"""
-"""
-def main(argv):
-  # Pass argument
-  parser = argparse.ArgumentParser()
-  parser.add_argument("rep", help="MFCC || SPECT: Choose to use MFCC or Spectrogram")
-  args = parser.parse_args()
+  # Constants
+  folder = config['FILE_READ']['GTZAN_FOLDER']
+  EXEC_TIMES = int(config['PARAMETERS_MODEL']['EXEC_TIMES'])
+  batch_size = int(config['PARAMETERS_MODEL']['BATCH_SIZE'])
+  epochs = int(config['PARAMETERS_MODEL']['EPOCHS'])
 
-  if args.rep == 'MFCC':
-    # Create a melspectrogram from the GTZAN Dataset
-    song_rep = MFCC(GTZAN_FOLDER)
-    input_shape = (1290, 20)
-  elif args.rep == 'SPECT':
-    # Create a MFCC representation from the GTZAN Dataset
-    song_rep = MelSpectrogram(GTZAN_FOLDER)
+  # Read data
+  data_type = config['FILE_READ']['TYPE']
+  print("data_type: %s" % data_type)
+
+  ## Read as MFCC
+  if data_type == 'MFCC':
     input_shape = (1290, 128)
-  else:
-    # Invalid option selected
-    raise ValueError('Argument Invalid: The options are MFCC or SPECT')
+    song_rep = MFCC(GTZAN_FOLDER)
+    songs, genres = song_rep.getdata()
 
-  songs, genres = song_rep.getdata()
-  if args.rep == 'SPECT':
-    songs = song_rep.normalize(songs)
+  ## Read as MelSpectrogram
+  elif data_type == 'SPECT':
+    input_shape = (1290, 20)
+    song_rep = MelSpectrogram(GTZAN_FOLDER)
+    songs, genres = song_rep.getdata()
+
+  ## Read from npy file
+  elif data_type == 'NPY':
+    input_shape = (1290, 128)
+    songs = np.load(folder + 'songs.npy')
+    genres = np.load(folder + 'genres.npy')
+  
+  ## Not valid datatype
+  else:
+    raise ValueError('Argument Invalid: The options are MFCC, SPECT or NPY')
 
   print(songs.shape)
   print(genres.shape)
-
-  # Free memory
-  del song_rep
   
   # Train multiple times and get mean score
   test_history = []
@@ -63,19 +67,17 @@ def main(argv):
     for train_index, test_index in sss.split(songs, genres):
       x_train, x_test = songs[train_index], songs[test_index]
       y_train, y_test = genres[train_index], genres[test_index]
-
+    
     # Construct the model
-    if args.rep == 'SPECT':
-      cnn = cnn_gtzan_model(input_shape)
+    if data_type == 'MFCC':
+      cnn = ModelZoo.cnn_mfcc(input_shape)
     else:
-      cnn = cnn_gtzan_model_mfcc(input_shape)
+      cnn = ModelZoo.cnn_melspect(input_shape)
 
     print("Size of the CNN: %s" % cnn.count_params())
 
     # Optimizers
     sgd = keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=1e-6, nesterov=True)
-    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
-
     # Compiler for the model
     cnn.compile(loss=keras.losses.categorical_crossentropy,
       optimizer=sgd,
@@ -115,6 +117,24 @@ def main(argv):
   # Print the statistics
   print(list(test_acc))
   print("Test accuracy - mean: %s, std: %s" % (np.mean(test_acc), np.std(test_acc)))
+  
+  # summarize history for accuracy
+  plt.plot(history.history['acc'])
+  plt.plot(history.history['val_acc'])
+  plt.title('model accuracy')
+  plt.ylabel('accuracy')
+  plt.xlabel('epoch')
+  plt.legend(['train', 'test'], loc='upper left')
+  plt.show()
+  
+  # summarize history for loss
+  plt.plot(history.history['loss'])
+  plt.plot(history.history['val_loss'])
+  plt.title('model loss')
+  plt.ylabel('loss')
+  plt.xlabel('epoch')
+  plt.legend(['train', 'test'], loc='upper left')
+  plt.show()
 
-if __name__ == "__main__":
-  main(sys.argv)
+if __name__ == '__main__':
+  main()
