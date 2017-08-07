@@ -76,8 +76,12 @@ class MelSpectrogram(object):
             # Calculate the melspectrogram of the audio and use log scale
             melspec = librosa.feature.melspectrogram(signal[:self.song_samples],
               sr = sr, n_fft = self.n_fft, hop_length = self.hop_length)
-          
+            
+            # Split in 15 pieces
+            melspec = np.split(melspec.T[:1280,:], 10)
+
             # Append the result to the data structure
-            song_data.append(melspec.T)
-            genre_data.append(self.genres[x])
+            for m in melspec:
+              song_data.append(m)
+              genre_data.append(self.genres[x])
     return np.array(song_data), keras.utils.to_categorical(genre_data, len(self.genres))

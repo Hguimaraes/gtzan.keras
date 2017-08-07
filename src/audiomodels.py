@@ -23,33 +23,28 @@ class ModelZoo(object):
   # MelSpectrogram input format.
   @staticmethod
   def cnn_melspect(input_shape):
-    kernel_size = 3
-    activation_func = LeakyReLU()
+    kernel_size = 5
+    #activation_func = LeakyReLU()
+    activation_func = Activation('relu')
     inputs = Input(input_shape)
 
     # Convolutional block_1
     conv1 = Conv1D(128, kernel_size)(inputs)
     act1 = activation_func(conv1)
-    #conv1 = Conv1D(128, kernel_size)(act1)
-    #act1 = activation_func(conv1)
     bn1 = BatchNormalization()(act1)
     pool1 = MaxPooling1D(pool_size=2, strides=2)(bn1)
 
     # Convolutional block_2
     conv2 = Conv1D(256, kernel_size)(pool1)
     act2 = activation_func(conv2)
-    #conv2 = Conv1D(256, kernel_size)(act2)
-    #act2 = LeakyReLU()(conv2)
     bn2 = BatchNormalization()(act2)
     pool2 = MaxPooling1D(pool_size=2, strides=2)(bn2)
 
     # Convolutional block_3
-    conv3 = Conv1D(256, kernel_size)(pool2)
+    conv3 = Conv1D(512, kernel_size)(pool2)
     act3 = activation_func(conv3)
-    #conv3 = Conv1D(512, kernel_size)(act3)
-    #act3 = activation_func(conv3)
     bn3 = BatchNormalization()(act3)
-
+    
     # Global Layers
     gmaxpl = GlobalMaxPooling1D()(bn3)
     gmeanpl = GlobalAveragePooling1D()(bn3)
@@ -58,7 +53,12 @@ class ModelZoo(object):
     # Regular MLP
     dense1 = Dense(512)(mergedlayer)
     actmlp = activation_func(dense1)
-    reg = Dropout(0.25)(actmlp)
+    reg = Dropout(0.5)(actmlp)
+
+    dense2 = Dense(512)(reg)
+    actmlp = activation_func(dense2)
+    reg = Dropout(0.5)(actmlp)
+    
     dense2 = Dense(10, activation='softmax')(reg)
 
     model = Model(inputs=[inputs], outputs=[dense2])

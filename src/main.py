@@ -11,7 +11,6 @@ from keras import backend as K
 
 from audiostruct import MFCC, MelSpectrogram
 from audiomodels import ModelZoo
-#from audioutils import MusicDataGenerator
 
 # Disable TF warnings about speed up
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
@@ -22,7 +21,7 @@ def main():
   config.read('params.ini')
 
   # Constants
-  folder = config['FILE_READ']['GTZAN_FOLDER']
+  GTZAN_FOLDER = config['FILE_READ']['GTZAN_FOLDER']
   EXEC_TIMES = int(config['PARAMETERS_MODEL']['EXEC_TIMES'])
   batch_size = int(config['PARAMETERS_MODEL']['BATCH_SIZE'])
   epochs = int(config['PARAMETERS_MODEL']['EPOCHS'])
@@ -33,21 +32,21 @@ def main():
 
   ## Read as MFCC
   if data_type == 'MFCC':
-    input_shape = (1290, 128)
+    input_shape = (128, 128)
     song_rep = MFCC(GTZAN_FOLDER)
     songs, genres = song_rep.getdata()
 
   ## Read as MelSpectrogram
   elif data_type == 'SPECT':
-    input_shape = (1290, 20)
+    input_shape = (1920, 20)
     song_rep = MelSpectrogram(GTZAN_FOLDER)
     songs, genres = song_rep.getdata()
 
   ## Read from npy file
   elif data_type == 'NPY':
-    input_shape = (1290, 128)
-    songs = np.load(folder + 'songs.npy')
-    genres = np.load(folder + 'genres.npy')
+    input_shape = (128, 128)
+    songs = np.load(GTZAN_FOLDER + 'songs.npy')
+    genres = np.load(GTZAN_FOLDER + 'genres.npy')
   
   ## Not valid datatype
   else:
@@ -55,6 +54,7 @@ def main():
 
   print(songs.shape)
   print(genres.shape)
+   
   
   # Train multiple times and get mean score
   test_history = []
@@ -63,7 +63,7 @@ def main():
 
   for x in range(EXEC_TIMES):
     # Split the dataset into training and test
-    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3)
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.25)
     for train_index, test_index in sss.split(songs, genres):
       x_train, x_test = songs[train_index], songs[test_index]
       y_train, y_test = genres[train_index], genres[test_index]
@@ -78,9 +78,11 @@ def main():
 
     # Optimizers
     sgd = keras.optimizers.SGD(lr=0.001, momentum=0.9, decay=1e-6, nesterov=True)
+    adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
+    
     # Compiler for the model
     cnn.compile(loss=keras.losses.categorical_crossentropy,
-      optimizer=sgd,
+      optimizer=adam,
       metrics=['accuracy'])
 
     # Early stop
