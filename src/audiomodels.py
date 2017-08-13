@@ -22,10 +22,10 @@ class ModelZoo(object):
   #  Method used for classify data from GTZAN in the 
   # MelSpectrogram input format.
   @staticmethod
-  def cnn_melspect(input_shape):
+  def cnn_melspect_1D(input_shape):
     kernel_size = 5
-    #activation_func = LeakyReLU()
-    activation_func = Activation('relu')
+    activation_func = LeakyReLU()
+    #activation_func = Activation('tanh')
     inputs = Input(input_shape)
 
     # Convolutional block_1
@@ -62,36 +62,4 @@ class ModelZoo(object):
     dense2 = Dense(10, activation='softmax')(reg)
 
     model = Model(inputs=[inputs], outputs=[dense2])
-    return model
-
-  # @Method: cnn_melspect
-  # @Description: 
-  #  Method used for classify data from GTZAN in the 
-  # MFCC input format.
-  @staticmethod
-  def cnn_mfcc(input_shape):
-    model = Sequential()
-    
-    # First Conv Layer
-    model.add(Conv1D(16, 4, input_shape = input_shape))
-    model.add(keras.layers.advanced_activations.LeakyReLU())
-    model.add(Conv1D(32, 4))
-    model.add(keras.layers.advanced_activations.LeakyReLU())
-    model.add(BatchNormalization())
-    model.add(MaxPooling1D(pool_size=3, strides=3))
-    
-    # Second Conv Layer
-    model.add(Conv1D(32, 4))
-    model.add(keras.layers.advanced_activations.LeakyReLU())
-    model.add(Conv1D(64, 4))
-    model.add(keras.layers.advanced_activations.LeakyReLU())
-    model.add(BatchNormalization())
-    model.add(GlobalMaxPooling1D())
-
-    # Regular MLP
-    model.add(Dense(128))
-    model.add(keras.layers.advanced_activations.LeakyReLU())
-    model.add(Dropout(0.25))
-    model.add(Dense(10, activation='softmax'))
-
     return model
