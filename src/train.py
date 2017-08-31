@@ -1,4 +1,5 @@
 import os
+import ast
 import sys
 import configparser
 
@@ -9,10 +10,10 @@ from sklearn.model_selection import train_test_split
 import keras
 from keras import backend as K
 
-from audiostruct import AudioStruct
-from audiomodels import ModelZoo
-from audioutils import AudioUtils
-from audioutils import MusicDataGenerator
+from audiomanip.audiostruct import AudioStruct
+from audiomanip.audiomodels import ModelZoo
+from audiomanip.audioutils import AudioUtils
+from audiomanip.audioutils import MusicDataGenerator
 
 # Disable TF warnings about speed up
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
@@ -23,12 +24,17 @@ def main():
   config.read('params.ini')
 
   # Constants
+  ## Configuration
   GTZAN_FOLDER = config['FILE_READ']['GTZAN_FOLDER']
+  MODEL_PATH = config['FILE_READ']['SAVE_MODEL']
+  SAVE_NPY = ast.literal_eval(config['FILE_READ']['SAVE_NPY'])
   EXEC_TIMES = int(config['PARAMETERS_MODEL']['EXEC_TIMES'])
+  CNN_TYPE = config['PARAMETERS_MODEL']['CNN_TYPE']
+
+  ## CNN hyperparameters
   batch_size = int(config['PARAMETERS_MODEL']['BATCH_SIZE'])
   epochs = int(config['PARAMETERS_MODEL']['EPOCHS'])
-  CNN_TYPE = config['PARAMETERS_MODEL']['CNN_TYPE']
-  print(CNN_TYPE)
+
   if not ((CNN_TYPE == '1D') or (CNN_TYPE == '2D')):
     raise ValueError('Argument Invalid: The options are 1D or 2D for CNN_TYPE')
 
@@ -42,6 +48,11 @@ def main():
     song_rep = AudioStruct(GTZAN_FOLDER)
     songs, genres = song_rep.getdata()
 
+    # Save the audio files as npy files to read faster next time
+    if SAVE_NPY:
+      np.save(GTZAN_FOLDER + 'songs.npy', songs)
+      np.save(GTZAN_FOLDER + 'genres.npy', genres)
+
   ## Read from npy file
   elif data_type == 'NPY':
     songs = np.load(GTZAN_FOLDER + 'songs.npy')
@@ -53,7 +64,7 @@ def main():
 
   print(songs.shape)
   print(genres.shape)
-  
+
   # Train multiple times and get mean score
   test_history = []
   test_loss = []
@@ -148,6 +159,9 @@ def main():
   plt.xlabel('epoch')
   plt.legend(['train', 'test'], loc='upper left')
   plt.show()
+
+  # Save the model
+  cnn.save(MODEL_PATH)
 
 if __name__ == '__main__':
   main()
