@@ -62,8 +62,8 @@ def main():
   else:
     raise ValueError('Argument Invalid: The options are AUDIO_FILES or NPY for data_type')
 
-  print(songs.shape)
-  print(genres.shape)
+  print("Original songs array shape: {0}".format(songs.shape))
+  print("Original genre array shape: {0}".format(genres.shape))
 
   # Train multiple times and get mean score
   test_history = []
@@ -89,10 +89,9 @@ def main():
     elif CNN_TYPE == '2D':
       cnn = ModelZoo.cnn_melspect_2D(input_shape)
 
-    print(X_train.shape)
-    print(X_Val.shape)
-    print(X_test.shape)
-    print("#############")
+    print("Train shape (before entry on the cnn): {0}".format(X_train.shape))
+    print("Validation shape: {0}".format(X_Val.shape))
+    print("Test shape: {0}\n".format(X_test.shape))
     print("Size of the CNN: %s" % cnn.count_params())
 
     # Optimizers
@@ -100,11 +99,15 @@ def main():
     adam = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=1e-5)
     
     # Data generator
-    datagen = MusicDataGenerator(time_stretching=True)
+    datagen = MusicDataGenerator(
+      time_stretching=False,
+      pitch_shifting=False,
+      dynamic_range_compression=False,
+      background_noise=False)
 
     # Compiler for the model
     cnn.compile(loss=keras.losses.categorical_crossentropy,
-      optimizer=adam,
+      optimizer=sgd,
       metrics=['accuracy'])
 
     # Early stop

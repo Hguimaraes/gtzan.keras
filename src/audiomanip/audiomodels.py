@@ -41,21 +41,27 @@ class ModelZoo(object):
     pool2 = MaxPooling1D(pool_size=2, strides=2)(bn2)
 
     # Convolutional block_3
-    conv3 = Conv1D(512, kernel_size)(pool2)
+    conv3 = Conv1D(256, kernel_size)(pool2)
     act3 = activation_func(conv3)
     bn3 = BatchNormalization()(act3)
+    pool3 = MaxPooling1D(pool_size=2, strides=2)(bn3)
+
+    # Convolutional block_4
+    conv4 = Conv1D(512, kernel_size)(pool3)
+    act4 = activation_func(conv4)
+    bn4 = BatchNormalization()(act4)
     
     # Global Layers
-    gmaxpl = GlobalMaxPooling1D()(bn3)
-    gmeanpl = GlobalAveragePooling1D()(bn3)
+    gmaxpl = GlobalMaxPooling1D()(bn4)
+    gmeanpl = GlobalAveragePooling1D()(bn4)
     mergedlayer = concatenate([gmaxpl, gmeanpl], axis=1)
 
     # Regular MLP
-    dense1 = Dense(512)(mergedlayer)
+    dense1 = Dense(1024)(mergedlayer)
     actmlp = activation_func(dense1)
     reg = Dropout(0.5)(actmlp)
 
-    dense2 = Dense(512)(reg)
+    dense2 = Dense(1024)(reg)
     actmlp = activation_func(dense2)
     reg = Dropout(0.5)(actmlp)
     
