@@ -22,7 +22,22 @@ class AudioUtils(object):
     offset = random.sample(range(0, melspec.shape[0] - 128), 1)[0]
     return melspec[offset:(offset+128)]
 
-  def splitsongs(self, X, y, cnn_type = '1D'):
+  def splitsongs(self, X,y, pieces = 6):
+    temp_X = []
+    temp_y = []
+
+    for i, song in enumerate(X):
+      song_slipted = np.split(song, pieces)
+      for s in song_slipted:
+        temp_X.append(s)
+        temp_y.append(y[i])
+
+    temp_X = np.array(temp_X)
+    temp_y = np.array(temp_y)
+
+    return temp_X, temp_y
+
+  def splitsongs_melspect(self, X, y, cnn_type = '1D'):
     temp_X = []
     temp_y = []
 

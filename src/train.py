@@ -80,8 +80,11 @@ def main():
       X_train, y_train, test_size=1/3, stratify=y_train)
     
     # split the test and validation data in size 128x128
-    X_Val, y_val = AudioUtils().splitsongs(X_Val, y_val, CNN_TYPE)
-    X_test, y_test = AudioUtils().splitsongs(X_test, y_test, CNN_TYPE)
+    X_Val, y_val = AudioUtils().splitsongs_melspect(X_Val, y_val, CNN_TYPE)
+    X_test, y_test = AudioUtils().splitsongs_melspect(X_test, y_test, CNN_TYPE)
+
+    # split train data
+    X_train, y_train = AudioUtils().splitsongs(X_train, y_train)
         
     # Construct the model
     if CNN_TYPE == '1D':
