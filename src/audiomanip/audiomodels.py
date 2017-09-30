@@ -23,45 +23,43 @@ class ModelZoo(object):
   # MelSpectrogram input format.
   @staticmethod
   def cnn_melspect_1D(input_shape):
-    kernel_size = 5
-    activation_func = LeakyReLU()
-    #activation_func = Activation('tanh')
+    kernel_size = 3
+    #activation_func = LeakyReLU()
+    activation_func = Activation('relu')
     inputs = Input(input_shape)
 
     # Convolutional block_1
-    conv1 = Conv1D(128, kernel_size)(inputs)
+    conv1 = Conv1D(32, kernel_size)(inputs)
     act1 = activation_func(conv1)
     bn1 = BatchNormalization()(act1)
     pool1 = MaxPooling1D(pool_size=2, strides=2)(bn1)
 
     # Convolutional block_2
-    conv2 = Conv1D(256, kernel_size)(pool1)
+    conv2 = Conv1D(64, kernel_size)(pool1)
     act2 = activation_func(conv2)
     bn2 = BatchNormalization()(act2)
     pool2 = MaxPooling1D(pool_size=2, strides=2)(bn2)
 
     # Convolutional block_3
-    conv3 = Conv1D(256, kernel_size)(pool2)
+    conv3 = Conv1D(128, kernel_size)(pool2)
     act3 = activation_func(conv3)
     bn3 = BatchNormalization()(act3)
-    pool3 = MaxPooling1D(pool_size=2, strides=2)(bn3)
-
-    # Convolutional block_4
-    conv4 = Conv1D(512, kernel_size)(pool3)
-    act4 = activation_func(conv4)
-    bn4 = BatchNormalization()(act4)
     
     # Global Layers
-    gmaxpl = GlobalMaxPooling1D()(bn4)
-    gmeanpl = GlobalAveragePooling1D()(bn4)
+    gmaxpl = GlobalMaxPooling1D()(bn3)
+    gmeanpl = GlobalAveragePooling1D()(bn3)
     mergedlayer = concatenate([gmaxpl, gmeanpl], axis=1)
 
     # Regular MLP
-    dense1 = Dense(1024)(mergedlayer)
+    dense1 = Dense(512,
+        kernel_initializer='glorot_normal',
+        bias_initializer='glorot_normal')(mergedlayer)
     actmlp = activation_func(dense1)
     reg = Dropout(0.5)(actmlp)
 
-    dense2 = Dense(1024)(reg)
+    dense2 = Dense(512,
+        kernel_initializer='glorot_normal',
+        bias_initializer='glorot_normal')(reg)
     actmlp = activation_func(dense2)
     reg = Dropout(0.5)(actmlp)
     

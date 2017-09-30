@@ -11,6 +11,8 @@ class AudioStruct(object):
     # Constants
     self.song_samples = 660000
     self.file_path = file_path
+    self.n_fft = 2048
+    self.hop_length = 512
     self.genres = {'metal': 0, 'disco': 1, 'classical': 2, 'hiphop': 3, 'jazz': 4,
       'country': 5, 'pop': 6, 'blues': 7, 'reggae': 8, 'rock': 9}
    
@@ -29,7 +31,13 @@ class AudioStruct(object):
           # Read the audio file
             file_name = self.file_path + x + "/" + file
             print(file_name)
-            signal,_ = librosa.load(file_name)
-            song_data.append(signal[:self.song_samples])
+            signal, sr = librosa.load(file_name)
+          
+            # Calculate the melspectrogram of the audio and use log scale
+            melspec = librosa.feature.melspectrogram(signal[:self.song_samples],
+              sr = sr, n_fft = self.n_fft, hop_length = self.hop_length).T[:1280,]
+            
+            # Append the result to the data structure
+            song_data.append(melspec)
             genre_data.append(self.genres[x])
     return np.array(song_data), keras.utils.to_categorical(genre_data, len(self.genres))
