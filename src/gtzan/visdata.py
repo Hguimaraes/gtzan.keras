@@ -1,4 +1,9 @@
-def plot_history(hist):
+import itertools
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Plot and save keras trainning history
+def save_history(hist, save_dir):
     plt.figure(figsize=(15,7))
 
     plt.subplot(1,2,1)
@@ -18,7 +23,7 @@ def plot_history(hist):
     plt.legend()
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig(save_dir, format='png', bbox_inches='tight')
 
 #http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
 def plot_confusion_matrix(cm, classes,

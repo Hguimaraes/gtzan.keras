@@ -11,6 +11,7 @@ def build_model(input_shape, num_genres):
 
     # Model Definition
     model = Sequential()
+    
     # Conv Block 1
     model.add(Conv2D(16, kernel_size=(3, 3), strides=(1, 1),
                      activation='relu', input_shape=input_shape))
