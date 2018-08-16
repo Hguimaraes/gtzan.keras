@@ -1,6 +1,8 @@
 import os
 import librosa
 import numpy as np
+from sklearn.model_selection import train_test_split
+from keras.utils import to_categorical
 
 """
 @description: Method to split a song into multiple songs using overlapping windows
@@ -14,7 +16,6 @@ def splitsongs(X, y, window = 0.1, overlap = 0.5):
     xshape = X.shape[0]
     chunk = int(xshape*window)
     offset = int(chunk*(1.-overlap))
-    print(list(range(0, xshape - chunk + offset, offset)))
     
     # Split the song and create new ones on windows
     spsong = [X[i:i+chunk] for i in range(0, xshape - chunk + offset, offset)]
@@ -39,13 +40,14 @@ def to_melspectrogram(songs, n_fft = 1024, hop_length = 512):
 """
 @description: Read audio files from folder
 """
-def read_data(src_dir, genres, song_samples, spec_format, debug = True):    
+def read_data(src_dir, genres, song_samples,  
+    n_fft = 1024, hop_length = 512, debug = True):
     # Empty array of dicts with the processed features from all files
     arr_specs = []
     arr_genres = []
 
     # Read files from the folders
-    for x,_ in genres.items():
+    for x, _ in genres.items():
         folder = src_dir + x
         
         for root, subdirs, files in os.walk(folder):
@@ -63,11 +65,28 @@ def read_data(src_dir, genres, song_samples, spec_format, debug = True):
                 signals, y = splitsongs(signal, genres[x])
                 
                 # Convert to "spec" representation
-                specs = spec_format(signals)
+                specs = to_melspectrogram(signals, n_fft, hop_length)
                 
                 # Save files
-                arr_genres.extend(y)
-                arr_specs.extend(specs)
-                
+                arr_genres.append(y)
+                arr_specs.append(specs)
                 
     return np.array(arr_specs), np.array(arr_genres)
+
+"""
+@description: Split train and test in chunks
+"""
+def ttsplit(X, y, test_size):
+    # Stratify array
+    strat_y = np.max(y, axis = 1)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, stratify = strat_y)
+
+    # Flatenizer the arrays
+    X_train = X_train.reshape(-1, *X_train.shape[-3:])
+    X_test = X_test.reshape(-1, *X_test.shape[-3:])
+    y_train = to_categorical(y_train.reshape(-1))
+    y_test = to_categorical(y_test.reshape(-1))
+
+    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
+
+    return X_train, X_test, y_train, y_test
