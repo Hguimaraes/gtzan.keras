@@ -26,7 +26,7 @@ def save_history(hist, save_dir):
     plt.savefig(save_dir, format='png', bbox_inches='tight')
 
 #http://scikit-learn.org/stable/auto_examples/model_selection/plot_confusion_matrix.html
-def plot_confusion_matrix(cm, classes,
+def plot_confusion_matrix(save_dir, cm, classes,
                           normalize=False,
                           title='Confusion matrix',
                           cmap=plt.cm.Blues):
@@ -57,3 +57,4 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
+    plt.savefig(save_dir, format='png', bbox_inches='tight')
