@@ -87,6 +87,4 @@ def ttsplit(X, y, test_size):
     y_train = to_categorical(y_train.reshape(-1))
     y_test = to_categorical(y_test.reshape(-1))
 
-    print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
-
     return X_train, X_test, y_train, y_test
