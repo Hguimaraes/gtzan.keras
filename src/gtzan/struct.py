@@ -79,7 +79,14 @@ def read_data(src_dir, genres, song_samples,
 def ttsplit(X, y, test_size):
     # Stratify array
     strat_y = np.max(y, axis = 1)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2, stratify = strat_y)
+    s = np.arange(y.shape[0])
+    
+    # Shuffle the arrays
+    np.random.shuffle(s)
+    X, y = X[s], y[s]
+
+    # Split the arrays
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = test_size, stratify = strat_y)
 
     # Flatenizer the arrays
     X_train = X_train.reshape(-1, *X_train.shape[-3:])
