@@ -7,52 +7,21 @@ from keras.layers import MaxPooling2D
 from keras.layers import Dropout
 from keras.layers import Flatten
 from keras.layers import BatchNormalization
+from keras.applications.vgg16 import VGG16
 
-def build_model(input_shape, num_genres):
+def cnn_vgg16(input_shape, num_genres, freezed_layers = 5):
+    input_tensor = Input(shape=input_shape)
+    vgg16 = VGG16(include_top=False, weights='imagenet',
+                  input_tensor=input_tensor)
 
-    # Model Definition
-    model = Sequential()
-    
-    # Conv Block 1
-    model.add(Conv2D(16, kernel_size=(3, 3), strides=(1, 1),
-                     activation=None, input_shape=input_shape))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    top = Sequential()
+    top.add(Flatten(input_shape=vgg16.output_shape[1:]))
+    top.add(Dense(256, activation='relu'))
+    top.add(Dropout(0.5))
+    top.add(Dense(num_genres, activation='softmax'))
 
-    # Conv Block 2
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), activation=None))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-
-    # Conv Block 3
-    model.add(Conv2D(64, (3, 3), strides=(1, 1), activation=None))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-
-
-    # Conv Block 4
-    model.add(Conv2D(128, (3, 3), strides=(1, 1), activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-
-    # Conv Block 5
-    model.add(Conv2D(64, (3, 3), strides=(1, 1), activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(4, 4), strides=(4, 4)))
-
-    # MLP
-    model.add(Flatten())
-    model.add(Dense(num_genres, activation='softmax'))
+    model = Model(inputs=vgg16.input, outputs=top(vgg16.output))
+    for layer in model.layers[:freezed_layers]:
+        layer.trainable = False
 
     return model
-
-def save_model(model_dir):
-    pass
-
-def load_model(model_dir):
-    pass

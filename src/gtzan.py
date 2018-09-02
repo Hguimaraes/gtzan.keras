@@ -19,6 +19,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 import keras
 from keras import backend as K
@@ -55,7 +56,10 @@ def main(args):
 
         # Read the files to memory and split into train test
         X, y = read_data(args.directory, genres, song_samples)
-        X_train, X_test, y_train, y_test = ttsplit(X, y, test_size=0.3)
+        
+        # Transform to a 3-channel image
+        X_stack = np.squeeze(np.stack((X,) * 3, -1))
+        X_train, X_test, y_train, y_test = train_test_split(X_stack, y, test_size=0.3, random_state=42, stratify = y)
 
         # Histogram for train and test
         values, count = np.unique(np.argmax(y_train, axis=1), return_counts=True)
@@ -74,13 +78,13 @@ def main(args):
               metrics=['accuracy'])
 
         hist = cnn.fit(X_train, y_train,
-                batch_size=32,
-                epochs=5,
-                verbose=1,
-                validation_data=(X_test, y_test))
+                batch_size = 256,
+                epochs = 50,
+                verbose = 1,
+                validation_data = (X_test, y_test))
 
         # Evaluate
-        score = cnn.evaluate(X_test, y_test, verbose=0)
+        score = cnn.evaluate(X_test, y_test, verbose = 0)
         print("val_loss = {:.3f} and val_acc = {:.3f}".format(score[0], score[1]))
 
         # Plot graphs

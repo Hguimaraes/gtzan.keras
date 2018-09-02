@@ -71,27 +71,4 @@ def read_data(src_dir, genres, song_samples,
                 arr_genres.append(y)
                 arr_specs.append(specs)
                 
-    return np.array(arr_specs), np.array(arr_genres)
-
-"""
-@description: Split train and test in chunks
-"""
-def ttsplit(X, y, test_size):
-    # Stratify array
-    strat_y = np.max(y, axis = 1)
-    s = np.arange(y.shape[0])
-    
-    # Shuffle the arrays
-    np.random.shuffle(s)
-    X, y = X[s], y[s]
-
-    # Split the arrays
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = test_size, stratify = strat_y)
-
-    # Flatenizer the arrays
-    X_train = X_train.reshape(-1, *X_train.shape[-3:])
-    X_test = X_test.reshape(-1, *X_test.shape[-3:])
-    y_train = to_categorical(y_train.reshape(-1))
-    y_test = to_categorical(y_test.reshape(-1))
-
-    return X_train, X_test, y_train, y_test
+    return np.array(arr_specs), to_categorical(np.array(arr_genres))
