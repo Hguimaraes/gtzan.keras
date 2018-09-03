@@ -2,27 +2,17 @@
 
 >  Music Genre classification using Convolutional Neural Networks. Implemented in Keras
 
-### Dependencies
-
-* Numpy
-* Scipy
-* Librosa
-* Keras
-* Tensorflow
-* Scikit-learn
-* h5py
-
 ### Dataset
 
 And how to get the dataset?
 
 1. Download the GTZAN dataset [here](http://opihi.cs.uvic.ca/sound/genres.tar.gz)
 
-Extract the file in the dataset folder of this project. The structure should look like this:
+Extract the file in the **data** folder of this project. The structure should look like this:
 
 ```bash
-├── dataset/
-   ├── GTZAN
+├── data/
+   ├── genres
       ├── blues
       ├── classical
       ├── country
@@ -34,60 +24,60 @@ Extract the file in the dataset folder of this project. The structure should loo
 
 ### How to run
 
-To run the Genre classifier:
+To run the training process in the gtzan files:
 
 ```bash
 $ cd src/
-$ python train.py
+$ python gtzan.py -t train -d ../data/genres/
+```
+
+After the execution the model will be save on the *models* folder. To run in a custom file, you should run as follow:
+
+```bash
+$ cd src/
+$ python gtzan.py -t test -m ../models/YOUR_MODEL_HERE -s ../data/SONG_TO_TEST_HERE
 ```
 
 ### Overview
 
-1. Read the audios as melspectrograms with size 1000x1280x128(samples x time x frequency)
-2. Shuffle the input and split into train, validation and test (Usually 75%,15%,10%)
-3. Split each sample in 10 parts. Now the input has the size 128x128
-4. Train the CNN and validate using the validation dataset
-5. Test the CNN accuracy in the test set.
-6. As we try to discover the genre of each slice on the test set, now we want to classify each entire song. For this we use a majority voting system (Basically is the mode of the 10 slices).
-7. Plot and print the results
+*tl;dr*: Compare the classic approach of extract features and use a classifier (e.g SVM) with the modern approach of using CNNs on a representation of the audio (Melspectrogram). You can see both approaches on the **nbs** folder in the Jupyter notebooks. 
+
+For the deep learning approach:
+
+1. Read the audios as melspectrograms, spliting then into 3s windows with 50% overlaping resulting in a dataset with the size 19000x129x128x1 (samples x time x frequency x channels)**.
+2. Shuffle the input and split into train and test (70%/30%)
+3. Train the CNN and validate using the validation dataset
+
+** In the case of the VGG, the channel need to have 3 channels
 
 ### Parameters
 
-In the source folder there is an file *params.ini* which you can use to tune your program parameters.
-
-You can have two types for reading the audio files: as .npy (NPY) files or straigth from the .au (AUDIO_FILES). Using the .npy is faster to read, but in the first time running you should select the AUDIO_FILES option and set the variable SAVE_NPY to True to save the npy file and use next time.
-
-The other parameters and the options associated are:
-
-* **TYPE**: [NPY or AUDIO_FILES]. Format reading
-* **GTZAN_FOLDER**: Path to GTZAN Folder
-* **SAVE_MODEL**: Path to save the trained model
-* **SAVE_NPY**: [True or False]n Save or not a NPY file with the audios already converted
-* **CNN_TYPE**: 1D (@TODO. In next version we also want to implement a 2D version)
-* **EXEC_TIMES**: [INTEGER]. Number of times to train the CNN shuffling the data. Important to see if the NN is not getting a good result only for a lucky split. 
-* **BATCH_SIZE**: [INTEGER]. Number of samples to use in each batch.
-* **EPOCHS**: [INTEGER]. Max number of epochs to train the NN. Note that we have an EarlyStop callback
-
-The are others variables that you can tune in the *src/train.py* file, such as the optmizer config.
+In the src folder there is an file *gtzan.py* which you can use to tune your program parameters. The graphics presented here were constructed with the default setting of this program.
 
 ### Model
 
-You can tune the model (Add more layers, change kernel size, etc) by editing the file *src/audiomanip/audiomodels.py*.
+You can tune the model (Add more layers, change kernel size or create a new one) by editing the file *src/gtzan/model.py*.
 
 ### Results
 
-Here are some results of one architectures used in this work. The details:
+To compare the result across multiple architectures, we have took two approaches for this problem: One using the classic approach of extracting features and then using a classifier. The second approach, wich is implemented on the src file here is a Deep Learning approach feeding a CNN with a melspectrogram.
 
-* Split: 75% Train, 15% Val e 10% Test
-* EXEC_TIMES: 5
-* BATCH_SIZE: 32
-* EPOCHS: 100 (Max), but usually converges at ~15
+You can check in the nbs folder on how we extracted the features, but here are the current results for a k-fold (k = 5):
 
-Results:
+| Model | Acc | Std |
+|-------|-----|-----|
+| Decision Tree | 0.502 | 0.03 |
+| Logistic Regression | 0.700 | 0.013 |
+| Random Forest | 0.708 | 0.032 |
+| SVM (RBF) | 0.762 | 0.034 |
 
-* Validation accuracy - mean: 0.8191, std: 0.03411 (Validation history)
-* Test accuracy - mean: 0.7034, std: 0.02263 (Test history)
-* Test accuracy MVS - mean: 0.7760, std: 0.04128 (Test history using Majority Voting System)
+For the deep learning approach we have tested two models: CNN 2D and a VGG16-like model. Reading the file as melspectrograms and split the 30s into 3s files with 50% overlaping, using a training split of 70% for train and 30% test. The process was executed 3x to ensure it wasn't a luck split.
 
-![alt text](assets/acc.png "Model accuracy")
-![alt text](assets/loss.png "Model Loss")
+| Model | Acc | Std |
+|-------|-----|-----|
+| CNN 2D | 0.832    | 0.008 |
+| VGG16  | 0.864    | 0.012 |
+
+![alt text](./data/assets/losscnn2dgtzan.png "CNN 2D Model")
+![alt text](./data/assets/lossvgg16gtzan.png "VGG16 Model")
+![alt text](./data/assets/cmvgg16.png "Confusion Matrix of the VGG16 Model")
