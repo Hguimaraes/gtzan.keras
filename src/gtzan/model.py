@@ -6,6 +6,7 @@ from keras.layers import Conv2D
 from keras.layers import MaxPooling2D
 from keras.layers import Dropout
 from keras.layers import Flatten
+from keras.layers import Input
 from keras.layers import BatchNormalization
 from keras.applications.vgg16 import VGG16
 
