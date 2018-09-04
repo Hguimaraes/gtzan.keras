@@ -9,7 +9,7 @@ from keras.layers import Flatten
 from keras.layers import BatchNormalization
 from keras.applications.vgg16 import VGG16
 
-def cnn_vgg16(input_shape, num_genres, freezed_layers = 5):
+def build_model(input_shape, num_genres, freezed_layers = 5):
     input_tensor = Input(shape=input_shape)
     vgg16 = VGG16(include_top=False, weights='imagenet',
                   input_tensor=input_tensor)

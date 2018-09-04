@@ -68,7 +68,7 @@ def read_data(src_dir, genres, song_samples,
                 specs = to_melspectrogram(signals, n_fft, hop_length)
                 
                 # Save files
-                arr_genres.append(y)
-                arr_specs.append(specs)
+                arr_genres.extend(y)
+                arr_specs.extend(specs)
                 
     return np.array(arr_specs), to_categorical(np.array(arr_genres))
