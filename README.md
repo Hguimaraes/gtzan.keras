@@ -68,7 +68,7 @@ $ cd src/
 $ python app.py -t MODEL_TYPE -m ../models/PATH_TO_MODEL -s PATH_TO_SONG
 ```
 
-Where MODEL_TYPE = [ml, dl] for classical machine learning approach and for a deep learning approach, respectivly.
+Where MODEL_TYPE = [ml, dl] for classical machine learning approach and for a deep learning approach, respectively.
 
 Usage example:
 

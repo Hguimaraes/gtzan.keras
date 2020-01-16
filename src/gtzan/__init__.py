@@ -1,10 +1,29 @@
-from .model import build_model
-from .struct import splitsongs
-from .struct import to_melspectrogram
-from .struct import read_data
-from .visdata import save_history
-from .visdata import plot_confusion_matrix
+from gtzan.data.make_dataset import make_dataset_dl
+from gtzan.data.make_dataset import make_dataset_ml
+from gtzan.utils import majority_voting
+from sklearn.externals import load
+from tensorflow.keras.models import load_model
 
-__all__ = ['build_model', 'splitsongs',
-    'to_melspectrogram', 'read_data', 'save_history',
-    'plot_confusion_matrix']
+__all__ = ['AppManager']
+
+
+class AppManager:
+	def __init__(self, args, genres):
+		self.args = args
+		self.genres = genres
+
+	def run(self):
+		if self.args.type == "ml":
+			X = make_dataset_ml(self.args, self.genres)
+			pipe = load(self.args.model)
+			pred = pipe.predict(X)
+			print("{} is a {} song".format(, pred))
+
+		else:
+			X = make_dataset_dl(self.args, self.genres)
+			model = load_model(self.args.model)
+
+			preds = model.predict(X)
+			votes = majority_voting(preds)
+			print("{} is a {} song".format(, votes[0]))
+			print("other possible genres are: {}".format(votes[1:3]))
