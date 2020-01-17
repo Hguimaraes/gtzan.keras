@@ -27,7 +27,5 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--song', help='Path to song to classify', type=str, required=True)
     args = parser.parse_args()
 
-    print(args)
-
     # Call the main function
     main(args)
