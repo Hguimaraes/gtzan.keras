@@ -4,7 +4,7 @@
 
 ### Overview
 
-*tl;dr*: Compare the classic approach of extract features and use a classifier (e.g SVM) with the Deep Learning approach of using CNNs on a representation of the audio (Melspectrogram) to extract features and classify. You can see both approaches on the **nbs** folder in the Jupyter notebooks. 
+*tl;dr*: Compare the classic approach of extract features and use a classifier (e.g SVM) against the Deep Learning approach of using CNNs on a representation of the audio (Melspectrogram) to extract features and classify. You can see both approaches on the **nbs** folder in the Jupyter notebooks. 
 
 Resume of the deep learning approach:
 
