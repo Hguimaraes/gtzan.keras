@@ -26,5 +26,5 @@ class AppManager:
 
             preds = model.predict(X)
             votes = majority_voting(preds, self.genres)
-            print("{} is a {} song".format(self.args.song, votes[0]))
-            print("other possible genres are: {}".format(votes[1:3]))
+            print("{} is a {} song".format(self.args.song, votes[0][0]))
+            print("most likely genres are: {}".format(votes[:3]))

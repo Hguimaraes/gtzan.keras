@@ -73,5 +73,12 @@ Where MODEL_TYPE = [ml, dl] for classical machine learning approach and for a de
 Usage example:
 
 ```bash
-$ python app.py -t dl -m ../models/custom_cnn_2d.h5 -s ../data/genres/blues/blues.00036.wav
+$ python app.py -t dl -m ../models/custom_cnn_2d.h5 -s ../data/samples/iza_meu_talisma.mp3
+```
+
+and the output will be:
+
+```bash
+$ ../data/samples/iza_meu_talisma.mp3 is a pop song
+$ most likely genres are: [('pop', 0.43), ('hiphop', 0.39), ('country', 0.08)]
 ```

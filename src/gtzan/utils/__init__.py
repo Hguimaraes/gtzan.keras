@@ -6,10 +6,10 @@ __all__ = ["majority_voting"]
 def majority_voting(scores, dict_genres):
     preds = np.argmax(scores, axis = 1)
     values, counts = np.unique(preds, return_counts=True)
+    counts = np.round(counts/np.sum(counts), 2)
     votes = {k:v for k, v in zip(values, counts)}
     votes = {k: v for k, v in sorted(votes.items(), key=lambda item: item[1], reverse=True)}
-    votes = list(votes.keys())
-    return [get_genres(x, dict_genres) for x in votes]
+    return [(get_genres(x, dict_genres), prob) for x, prob in votes.items()]
 
 
 def get_genres(key, dict_genres):
