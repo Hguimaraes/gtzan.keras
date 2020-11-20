@@ -86,7 +86,7 @@ def to_melspectrogram(songs, n_fft=1024, hop_length=256):
   
 
 def make_dataset_ml(args):
-    signal, sr = librosa.load(args.song, sr=None)
+    signal, sr = librosa.load(args.song)
     
     # Append the result to the data structure
     features = get_features(signal, sr)
@@ -96,7 +96,7 @@ def make_dataset_ml(args):
 
 def make_dataset_dl(args):
     # Convert to spectrograms and split into small windows
-    signal, sr = librosa.load(args.song, sr=None)
+    signal, sr = librosa.load(args.song)
 
     # Convert to dataset of spectograms/melspectograms
     signals = splitsongs(signal)
